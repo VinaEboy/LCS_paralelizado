@@ -19,9 +19,11 @@ void lcs_omp_process_region(mtype **scoreMatrix, char *seqA, char *seqB,
                             int start_row, int end_row, int total_cols) {
     
     // Calcula quantos blocos existem no eixo Y (linhas) e X (colunas)
-    int num_rows = end_row - start_row;
-    int num_blocks_i = (num_rows + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    int num_blocks_j = (total_cols + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    int num_rows, num_blocks_i, num_blocks_j
+    
+    num_rows= end_row - start_row;
+    num_blocks_i = (num_rows + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    num_blocks_j = (total_cols + BLOCK_SIZE - 1) / BLOCK_SIZE;
 
     // Alocação com Padding
     int sync_cols = num_blocks_j + 1;
