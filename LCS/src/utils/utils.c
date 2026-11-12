@@ -70,7 +70,7 @@ void initScoreMatrix(mtype ** scoreMatrix, int sizeA, int sizeB) {
 		scoreMatrix[i][0] = 0;
 }
 
-// Debug com matriz pequena
+// Debug 
 void printMatrix(char *seqA, char *seqB, mtype **scoreMatrix, int sizeA, int sizeB) {
     printf("Score Matrix:\n");
     printf("========================================\n");

@@ -6,14 +6,14 @@ UTILS_DIR = src/utils
 
 SRCS_COMMON = $(UTILS_DIR)/utils.c
 SRCS_SEQ = $(SRC_DIR)/lcs_seq.c $(SRCS_COMMON)
-SRCS_OMP = $(SRC_DIR)/lcs_omp.c $(SRCS_COMMON)
+SRCS_OMP = $(SRC_DIR)/lcs_omp.c $(UTILS_DIR)/utils_omp.c $(SRCS_COMMON)
 
 TARGET_SEQ = lcs_seq
 TARGET_OMP = lcs_omp
 
 .PHONY: all clean seq omp
 
-all: seq
+all: seq omp
 
 seq: $(TARGET_SEQ)
 

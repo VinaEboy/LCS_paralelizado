@@ -10,8 +10,11 @@ typedef unsigned short mtype;
 
 #define BLOCK_SIZE 64
 
+#define NUM_THREADS 4
+
 //flag DEBUG ativada
 #define DEBUG 1
+#define DEBUGMATRIX 1 //era para imprimir a matriz
 
 //flag de debug
 #ifdef DEBUG
@@ -19,6 +22,5 @@ typedef unsigned short mtype;
 #else
 #define DEBUG_PRINT(fmt, ...) do {} while (0)
 #endif
-
 
 #endif

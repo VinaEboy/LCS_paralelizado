@@ -1,7 +1,0 @@
-# Executaveis e binarios
-lcs_seq
-lcs_omp
-*.o
-
-# Arquivos de saida / temporarios
-*.out

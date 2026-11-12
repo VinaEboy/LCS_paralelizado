@@ -23,6 +23,13 @@ int LCS(mtype ** scoreMatrix, int sizeA, int sizeB, char * seqA, char *seqB) {
 }
 
 int main(int argc, char ** argv) {
+
+    double t_seq_start, t_seq_end, t_seq_total = 0.0;
+    double t_total_start, t_total_end;
+
+	t_total_start = get_time();
+    t_seq_start = get_time();
+
 	// sequence pointers for both sequences
 	char *seqA, *seqB;
 
@@ -57,8 +64,16 @@ int main(int argc, char ** argv) {
 	printMatrix(seqA, seqB, scoreMatrix, sizeA, sizeB);
 	#endif
 
+	   
+	t_seq_end = get_time();
+    t_seq_total += (t_seq_end - t_seq_start);
+
+    t_total_end = get_time();
+
 	//print score
 	printf("\nScore: %d\n", score);
+	printf("Tempo sequencial: %f s\n", t_seq_total);
+    printf("Tempo total: %f s\n", (t_total_end - t_total_start));
 
 	//free score matrix
 	free(seqA);

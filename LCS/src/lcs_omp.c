@@ -1,61 +1,67 @@
-#include "lcs_omp.h"
-#include <omp.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include "utils_omp.h"
 
-// Cada worker calcula apenas o seu bloco
-static void compute_block(mtype **scoreMatrix, char *seqA, char *seqB,
-                          int start_i, int end_i, int start_j, int end_j) {
-    for (int i = start_i; i < end_i; i++) {
-        for (int j = start_j; j < end_j; j++) {
-            if (seqA[j - 1] == seqB[i - 1]) {
-                scoreMatrix[i][j] = scoreMatrix[i - 1][j - 1] + 1;
-            } else {
-                scoreMatrix[i][j] = max(scoreMatrix[i - 1][j], scoreMatrix[i][j - 1]);
-            }
-        }
+// ./lcs_omp [caminho fileA.in] [caminho fileB.in] [threads]
+int main(int argc, char **argv) {
+    double t_seq_start, t_seq_end, t_seq_total = 0.0;
+    double t_par_start, t_par_end, t_par_total = 0.0;
+    double t_total_start, t_total_end;
+
+    t_total_start = get_time();
+    t_seq_start = get_time();
+
+    char *seqA, *seqB;
+    int sizeA, sizeB;
+
+    if (argc > 2) {
+        seqA = read_seq(argv[1]);
+        seqB = read_seq(argv[2]);
+    } else {
+        seqA = read_seq("fileA.in");
+        seqB = read_seq("fileB.in");
     }
-}
 
-void lcs_omp_process_region(mtype **scoreMatrix, char *seqA, char *seqB, 
-                            int start_row, int end_row, int total_cols) {
-    
-    // Calcula quantos blocos existem no eixo Y (linhas) e X (colunas)
-    int num_rows, num_blocks_i, num_blocks_j
-    
-    num_rows= end_row - start_row;
-    num_blocks_i = (num_rows + BLOCK_SIZE - 1) / BLOCK_SIZE;
-    num_blocks_j = (total_cols + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    sizeA = strlen(seqA);
+    sizeB = strlen(seqB);
 
-    // Alocação com Padding
-    int sync_cols = num_blocks_j + 1;
-    char *sync_matrix = calloc((num_blocks_i + 1) * sync_cols, sizeof(char));
+    mtype **scoreMatrix = allocateScoreMatrix(sizeA, sizeB);
+    initScoreMatrix(scoreMatrix, sizeA, sizeB);
+    t_seq_end = get_time();
+    t_seq_total += (t_seq_end - t_seq_start);
 
-    #pragma omp parallel
-    #pragma omp single
-    {
-        // Começamos do 1 por causa do padding
-        for (int bi = 1; bi < num_blocks_i; bi++) {
-            for (int bj = 1; bj < num_blocks_j; bj++) {
-                int start_i, end_i, start_j, end_j;
-                // limites reais (em células) deste bloco específico
-                start_i = start_row + ((bi-1) * BLOCK_SIZE);
-                end_i   = start_i + BLOCK_SIZE;
-                if (end_i > end_row) end_i = end_row;
+    int num_threads;
+    if (argc > 3) 
+        num_threads = atoi(argv[3]);
+    else
+        num_threads = NUM_THREADS;
 
-                start_j = (bj == 1) ? 1 : ((bj-1) * BLOCK_SIZE);
-                end_j   = start_j + BLOCK_SIZE;
-                if (end_j > total_cols + 1) end_j = total_cols + 1;
+    t_par_start = get_time();
+    lcs_omp_process_region(scoreMatrix, seqA, seqB, 1, sizeB, sizeA, num_threads);
+    t_par_end = get_time();
+    t_par_total = (t_par_end - t_par_start);
 
-                // grafo de dependencias
-                #pragma omp task \
-                    depend(in: sync_matrix[(bi - 1) * sync_cols + bj]) \
-                    depend(in: sync_matrix[bi * sync_cols + (bj - 1)]) \
-                    depend(out: sync_matrix[bi * sync_cols + bj])
-                {
-                    compute_block(scoreMatrix, seqA, seqB, start_i, end_i, start_j, end_j);
-                }
+    t_seq_start = get_time();
+    mtype score = scoreMatrix[sizeB][sizeA];
 
-            }
-        }
-    } // taskwait aqui
-    free(sync_matrix);
+    #ifdef DEBUGMATRIX
+    printMatrix(seqA, seqB, scoreMatrix, sizeA, sizeB);
+    #endif
+
+    free(seqA);
+    free(seqB);
+    freeScoreMatrix(scoreMatrix, sizeB);
+    t_seq_end = get_time();
+    t_seq_total += (t_seq_end - t_seq_start);
+
+    t_total_end = get_time();
+
+    printf("Score: %d\n", score);
+    printf("Threads: %d\n", num_threads);
+    printf("Tempo sequencial: %f s\n", t_seq_total);
+    printf("Tempo paralelo: %f s\n", t_par_total);
+    printf("Tempo total: %f s\n", (t_total_end - t_total_start));
+
+    return EXIT_SUCCESS;
 }
