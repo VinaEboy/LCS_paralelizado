@@ -1,0 +1,19 @@
+# Arquivos de enunciado e relatorio
+Enunciado Trabalho1 OpenMP_MPI.pdf
+Relatório_Paralela/
+
+
+# Executaveis e binarios
+lcs_seq
+lcs_omp
+*.o
+
+# Arquivos de saida / temporarios
+*.out
+
+# Relatorio compilado (LaTeX)
+*.aux
+*.log
+*.toc
+*.out
+*.synctex.gz

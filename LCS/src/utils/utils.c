@@ -35,6 +35,8 @@ char* read_seq(char *fname) {
     return seq;
 }
 
+
+// aloca memoria para score matriz e para os dados contiguos
 mtype** allocateScoreMatrix(int sizeA, int sizeB) {
     //Allocate memory for LCS score matrix
     mtype *dados_contiguos = (mtype *) calloc((sizeB + 1) * (sizeA + 1), sizeof(mtype));
@@ -48,12 +50,15 @@ mtype** allocateScoreMatrix(int sizeA, int sizeB) {
     return scoreMatrix;
 }
 
+// libera memoria matriz
 void freeScoreMatrix(mtype **scoreMatrix, int sizeB) {
-    //Agora está tudo de forma contígua é só liberar a posição 0
+    (void)sizeB;
+    //agora está tudo de forma contígua é só liberar a posição 0
 	free(scoreMatrix[0]);
     free(scoreMatrix);
 }
 
+// inicia 0 na linha 0 e coluna 0
 void initScoreMatrix(mtype ** scoreMatrix, int sizeA, int sizeB) {
 	int i, j;
 	//Fill first line of LCS score matrix with zeroes
@@ -90,7 +95,7 @@ void printMatrix(char *seqA, char *seqB, mtype **scoreMatrix, int sizeA, int siz
     printf("========================================\n");
 }
 
-// Para sabermos o tempo
+// para sabermos o tempo
 double get_time() {
     return omp_get_wtime();
 }

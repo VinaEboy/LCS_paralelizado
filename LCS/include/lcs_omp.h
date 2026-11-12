@@ -3,7 +3,6 @@
 
 #include "utils.h"
 
-//numero que combina com o tamanho da cache
 #define BLOCK_SIZE 64
 
 /* 

@@ -45,7 +45,7 @@ void lcs_omp_process_region(mtype **scoreMatrix, char *seqA, char *seqB,
                 end_j   = start_j + BLOCK_SIZE;
                 if (end_j > total_cols + 1) end_j = total_cols + 1;
 
-                // Grafo de dependencias
+                // grafo de dependencias
                 #pragma omp task \
                     depend(in: sync_matrix[(bi - 1) * sync_cols + bj]) \
                     depend(in: sync_matrix[bi * sync_cols + (bj - 1)]) \
@@ -54,7 +54,6 @@ void lcs_omp_process_region(mtype **scoreMatrix, char *seqA, char *seqB,
                     compute_block(scoreMatrix, seqA, seqB, start_i, end_i, start_j, end_j);
                 }
 
-                //MPI aqui suponho
             }
         }
     } // taskwait aqui
