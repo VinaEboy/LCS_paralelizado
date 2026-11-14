@@ -10,17 +10,11 @@ typedef unsigned short mtype;
 
 #define BLOCK_SIZE 64
 
+// caso não seja passado o num de threads por parametro
 #define NUM_THREADS 4
 
-//flag DEBUG ativada
-#define DEBUG 1
-#define DEBUGMATRIX 1 //era para imprimir a matriz
+// para imprimir a matriz ao executar
+#define DEBUGMATRIX 0
 
-//flag de debug
-#ifdef DEBUG
-#define DEBUG_PRINT(fmt, ...) printf("[DEBUG] " fmt, ##__VA_ARGS__)
-#else
-#define DEBUG_PRINT(fmt, ...) do {} while (0)
-#endif
 
 #endif

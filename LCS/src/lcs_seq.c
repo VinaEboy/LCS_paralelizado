@@ -49,36 +49,74 @@ int main(int argc, char ** argv) {
 	sizeA = strlen(seqA);
 	sizeB = strlen(seqB);
 
-	// allocate LCS score matrix
-	mtype ** scoreMatrix = allocateScoreMatrix(sizeA, sizeB);
+	// leitura de flags opcionais
+	int mem_opt = 0;
+	int debug_matrix = 0;
+	for (int i = 1; i < argc; i++) {
+		if (strcmp(argv[i], "--mem-opt") == 0) {
+			mem_opt = 1;
+		} else if (strcmp(argv[i], "--debug-matrix") == 0) {
+			debug_matrix = 1;
+		} else if (strcmp(argv[i], "--full-matrix") == 0) {
+			mem_opt = 0;
+		}
+	}
 
-	//initialize LCS score matrix
-	initScoreMatrix(scoreMatrix, sizeA, sizeB);
+    // checagem de erro se mem_opt e debug_matrix forem passados juntos
+    if (mem_opt && debug_matrix) {
+        fprintf(stderr, "Erro: não é possível usar --debug-matrix com --mem-opt pois a matriz completa não é amarzenada\n");
+        free(seqA);
+        free(seqB);
+        return EXIT_FAILURE;
+    }
 
-	//fill up the rest of the matrix and return final score (element locate at the last line and collumn)
-	mtype score = LCS(scoreMatrix, sizeA, sizeB, seqA, seqB);
 
-	/* if you wish to see the entire score matrix,
-	 for debug purposes, define DEBUGMATRIX. */
-	#ifdef DEBUGMATRIX
-	printMatrix(seqA, seqB, scoreMatrix, sizeA, sizeB);
-	#endif
+	mtype score = 0;
 
-	   
-	t_seq_end = get_time();
-    t_seq_total += (t_seq_end - t_seq_start);
+	if (mem_opt) {
+		score = lcs_seq_mem_opt(seqA, seqB, sizeA, sizeB);
+		t_seq_end = get_time();
+		t_seq_total += (t_seq_end - t_seq_start);
 
-    t_total_end = get_time();
+		t_total_end = get_time();
 
-	//print score
-	printf("\nScore: %d\n", score);
-	printf("Tempo sequencial: %f s\n", t_seq_total);
-    printf("Tempo total: %f s\n", (t_total_end - t_total_start));
+		printf("\nScore: %d\n", score);
+		printf("Tempo sequencial: %f s\n", t_seq_total);
+		printf("Tempo total: %f s\n", (t_total_end - t_total_start));
 
-	//free score matrix
-	free(seqA);
-	free(seqB);
-	freeScoreMatrix(scoreMatrix, sizeB);
+		free(seqA);
+		free(seqB);
+	} 
+	else
+	{
+		// allocate LCS score matrix
+		mtype ** scoreMatrix = allocateScoreMatrix(sizeA, sizeB);
+
+		//initialize LCS score matrix
+		initScoreMatrix(scoreMatrix, sizeA, sizeB);
+
+		//fill up the rest of the matrix and return final score (element locate at the last line and collumn)
+		score = LCS(scoreMatrix, sizeA, sizeB, seqA, seqB);
+
+		if (debug_matrix) {
+			printMatrix(seqA, seqB, scoreMatrix, sizeA, sizeB);
+		}
+
+		t_seq_end = get_time();
+		t_seq_total += (t_seq_end - t_seq_start);
+
+		t_total_end = get_time();
+
+		//print score
+		printf("\nScore: %d\n", score);
+		printf("Tempo sequencial: %f s\n", t_seq_total);
+		printf("Tempo total: %f s\n", (t_total_end - t_total_start));
+
+		//free score matrix
+		free(seqA);
+		free(seqB);
+		freeScoreMatrix(scoreMatrix, sizeB);
+	}
 
 	return EXIT_SUCCESS;
 }

@@ -38,13 +38,13 @@ char* read_seq(char *fname) {
 
 // aloca memoria para score matriz e para os dados contiguos
 mtype** allocateScoreMatrix(int sizeA, int sizeB) {
-    //Allocate memory for LCS score matrix
-    mtype *dados_contiguos = (mtype *) calloc((sizeB + 1) * (sizeA + 1), sizeof(mtype));
-    mtype **scoreMatrix = (mtype **) malloc((sizeB + 1) * sizeof(mtype *));
+    //allocate memory for LCS score matrix
+    mtype *dados_contiguos = (mtype *) calloc((size_t)(sizeB + 1) * (sizeA + 1), sizeof(mtype));
+    mtype **scoreMatrix = (mtype **) malloc((size_t)(sizeB + 1) * sizeof(mtype *));
 
-    // Aponta cada linha o seu respectivo lugar no bloco contíguo
+    // aponta cada linha o seu respectivo lugar no bloco contíguo
     for (int i = 0; i < (sizeB + 1); i++) {
-        scoreMatrix[i] = &dados_contiguos[i * (sizeA + 1)];
+        scoreMatrix[i] = &dados_contiguos[(size_t)i * (sizeA + 1)];
     }
 
     return scoreMatrix;
@@ -98,4 +98,29 @@ void printMatrix(char *seqA, char *seqB, mtype **scoreMatrix, int sizeA, int siz
 // para sabermos o tempo
 double get_time() {
     return omp_get_wtime();
+}
+
+// versao sequencial otimizada em memoria (2 linhas)
+mtype lcs_seq_mem_opt(char *seqA, char *seqB, int sizeA, int sizeB) {
+    mtype *prev_row = (mtype *) calloc((size_t)(sizeA + 1), sizeof(mtype));
+    mtype *curr_row = (mtype *) calloc((size_t)(sizeA + 1), sizeof(mtype));
+
+    for (int i = 1; i <= sizeB; i++) {
+        for (int j = 1; j <= sizeA; j++) {
+            if (seqA[j - 1] == seqB[i - 1]) {
+                curr_row[j] = prev_row[j - 1] + 1;
+            } else {
+                curr_row[j] = max(prev_row[j], curr_row[j - 1]);
+            }
+        }
+        // troca as linhas para a proxima iteracao
+        mtype *temp = prev_row;
+        prev_row = curr_row;
+        curr_row = temp;
+    }
+
+    mtype score = prev_row[sizeA];
+    free(prev_row);
+    free(curr_row);
+    return score;
 }

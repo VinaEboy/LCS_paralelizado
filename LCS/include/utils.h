@@ -18,6 +18,10 @@ void initScoreMatrix(mtype **scoreMatrix, int sizeA, int sizeB);
 
 //debug
 void printMatrix(char *seqA, char *seqB, mtype **scoreMatrix, int sizeA, int sizeB);
+
 double get_time();
+
+// versao sequencial otimizada em memoria (2 linhas)
+mtype lcs_seq_mem_opt(char *seqA, char *seqB, int sizeA, int sizeB);
 
 #endif
