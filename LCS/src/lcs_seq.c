@@ -3,6 +3,7 @@
 #include <string.h>
 #include "utils.h"
 
+// kernel do algoritmo paralelizável
 int LCS(mtype ** scoreMatrix, int sizeA, int sizeB, char * seqA, char *seqB) {
 	int i, j;
 	for (i = 1; i < sizeB + 1; i++) {

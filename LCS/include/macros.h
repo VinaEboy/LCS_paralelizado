@@ -8,6 +8,7 @@ typedef unsigned short mtype;
 #define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
 #endif
 
+// tem que descobrir um parametro bom
 #define BLOCK_SIZE 64
 
 // caso não seja passado o num de threads por parametro
@@ -16,5 +17,6 @@ typedef unsigned short mtype;
 // para imprimir a matriz ao executar
 #define DEBUGMATRIX 0
 
+#define CHUNK_SIZE 1024
 
 #endif
