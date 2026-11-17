@@ -65,6 +65,52 @@ void lcs_omp_process_region(mtype **scoreMatrix, char *seqA, char *seqB, int sta
     free(sync_matrix);
 }
 
+void lcs_omp_process_chunk(mtype **scoreMatrix, char *seqA, char *seqB, int start_row, 
+        int end_row, int start_col, int end_col, int num_threads) {
+    // calcula quantos blocos existem eixo y (linhas) e x (colunas)
+    int num_rows, num_cols, num_blocks_i, num_blocks_j;
+    
+    num_rows = end_row - start_row + 1;
+    num_cols = end_col - start_col + 1;
+    num_blocks_i = (num_rows + BLOCK_SIZE - 1) / BLOCK_SIZE;
+    num_blocks_j = (num_cols + BLOCK_SIZE - 1) / BLOCK_SIZE;
+
+    // alocacao com padding
+    int sync_cols = num_blocks_j + 1;
+    char *sync_matrix = (char *) calloc((num_blocks_i + 1) * sync_cols, sizeof(char));
+
+    #pragma omp parallel num_threads(num_threads)
+    #pragma omp single
+    {
+        // começa com 1 por causa do padding
+        for (int bi = 1; bi <= num_blocks_i; bi++) {
+            for (int bj = 1; bj <= num_blocks_j; bj++) {
+                int start_i, end_i, start_j, end_j;
+                
+                //limites do bloco
+                start_i = start_row + ((bi - 1) * BLOCK_SIZE);
+                end_i   = start_i + BLOCK_SIZE;
+                if (end_i > end_row + 1)  end_i = end_row + 1;                
+
+                start_j = start_col + ((bj - 1) * BLOCK_SIZE);
+                end_j   = start_j + BLOCK_SIZE;
+                if (end_j > end_col + 1) end_j = end_col + 1;
+
+                //dependencias dos blocos adjacentes né, cima e do lado esquerdo
+                #pragma omp task \
+                    depend(in: sync_matrix[(bi - 1) * sync_cols + bj]) \
+                    depend(in: sync_matrix[bi * sync_cols + (bj - 1)]) \
+                    depend(out: sync_matrix[bi * sync_cols + bj]) \
+                    firstprivate(start_i, end_i, start_j, end_j)
+                {
+                    compute_block(scoreMatrix, seqA, seqB, start_i, end_i, start_j, end_j);
+                }
+            }
+        }
+        #pragma omp taskwait
+    } //taskwai aqui
+    free(sync_matrix);
+}
 
 // versao com otimizacao de memoria guardando apenas bordas de blocos
 mtype lcs_omp_process_mem_opt(char *seqA, char *seqB, int total_rows, int total_cols, int num_threads) {

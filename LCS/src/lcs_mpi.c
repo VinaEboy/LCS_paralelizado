@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "utils_mpi.h"
 
-// ./lcs_mpi [caminho fileA.in] [caminho fileB.in] COLOCAR_OUTROS_PARAMETROS_AQUI
+// ./lcs_mpi [caminho fileA.in] [caminho fileB.in] 
 int main(int argc, char **argv) {
     int rank, size;
     int sizeA = 0, sizeB = 0;
@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &size); //aqui preenche o size
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     double t_total_start = get_time();
 
@@ -44,12 +44,16 @@ int main(int argc, char **argv) {
     MPI_Bcast(seqA, sizeA + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
     MPI_Bcast(seqB, sizeB + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-    mpi_initScoreMatrix(mtype ** scoreMatrix, int sizeA, int sizeB, int size);
+    int num_minhas_linhas, inicio_linha;
+    mtype *dados_locais = NULL;
+    mtype **localMatrix = NULL;
+
+    mpi_initScoreMatrix(rank, size, sizeA, sizeB, &inicio_linha, &num_minhas_linhas, &localMatrix, &dados_locais);
 
     MPI_Barrier(MPI_COMM_WORLD);
     double t_par_start = get_time();
 
-    lcs_mpi_process();
+    lcs_mpi_process(localMatrix, seqA, seqB, sizeA, inicio_linha, num_minhas_linhas, rank, size);
 
     double t_par_end = get_time();
     double t_total_end = get_time();

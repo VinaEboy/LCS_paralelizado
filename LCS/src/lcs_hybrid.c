@@ -5,13 +5,13 @@
 #include "utils.h"
 #include "utils_mpi.h"
 
-// ./lcs_mpi [caminho fileA.in] [caminho fileB.in] COLOCAR_OUTROS_PARAMETROS_AQUI
+// ./lcs_mpi [caminho fileA.in] [caminho fileB.in] [threads]
 int main(int argc, char **argv) {
-    int rank, size;
+    int rank, size, provided;
     int sizeA = 0, sizeB = 0;
     char *seqA = NULL, *seqB = NULL;
 
-    MPI_Init(&argc, &argv);
+    MPI_Init_thread(&argc, &argv, MPI_THREAD_FUNNELED, &provided);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size); //aqui preenche o size
 
@@ -28,6 +28,17 @@ int main(int argc, char **argv) {
         }
         sizeA = strlen(seqA);
         sizeB = strlen(seqB);
+
+        //Garante que o MPI corte a maior dimensão
+        if (sizeB < sizeA) {
+            char *tempSeq = seqA;
+            seqA = seqB;
+            seqB = tempSeq;
+            
+            int tempSize = sizeA;
+            sizeA = sizeB;
+            sizeB = tempSize;
+        }
     }
 
     // transmite os tamanhos das sequencias para todos os processos
@@ -44,21 +55,26 @@ int main(int argc, char **argv) {
     MPI_Bcast(seqA, sizeA + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
     MPI_Bcast(seqB, sizeB + 1, MPI_CHAR, 0, MPI_COMM_WORLD);
 
-    mpi_initScoreMatrix(mtype ** scoreMatrix, int sizeA, int sizeB, int size);
+    int num_minhas_linhas, inicio_linha;
+    mtype *dados_locais = NULL;
+    mtype **localMatrix = NULL;
+
+    mpi_initScoreMatrix(rank, size, sizeA, sizeB, &inicio_linha, &num_minhas_linhas, &localMatrix, &dados_locais);
+
+    int num_threads = (argc > 3) ? atoi(argv[3]) : NUM_THREADS;
 
     MPI_Barrier(MPI_COMM_WORLD);
     double t_par_start = get_time();
 
-    lcs_hybrid_process();
+    lcs_hybrid_process(localMatrix, seqA, seqB, sizeA, inicio_linha, num_minhas_linhas, 
+        rank, size, num_threads);
 
     double t_par_end = get_time();
     double t_total_end = get_time();
 
-    // o ultimo rank possui o resultado final na ultima posicao da sua ultima linha
+    // o ultimo rank possui o resultado final
     mtype final_score = 0;
-    if (rank == size - 1) {
-        final_score = localMatrix[num_minhas_linhas][sizeA];
-    }
+    if (rank == size - 1) final_score = localMatrix[num_minhas_linhas][sizeA];
 
     // envia o score final para o rank 0 para impressao padronizada
     if (size > 1) {
