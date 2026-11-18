@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 import json
+import shutil
 from datetime import datetime
 
 # diretorios principais
@@ -26,9 +27,12 @@ results_dir = os.path.join(lcs_dir, "resultados")
 seq_bin = os.path.join(lcs_dir, "lcs_seq")
 omp_bin = os.path.join(lcs_dir, "lcs_omp")
 mpi_bin = os.path.join(lcs_dir, "lcs_mpi")
+hybrid_bin = os.path.join(lcs_dir, "lcs_hybrid")
 
 # configuracoes fixas dos experimentos (sem argumentos de linha de comando)
 threads_list = [1, 2, 4, 8, 16]
+mpi_processes_list = [1, 2, 4, 8, 16]
+hybrid_configs = [(2, 2), (2, 4), (4, 2), (2, 8), (4, 4), (8, 2)]
 repetitions = 20
 
 # lista completa de casos de teste estruturada por subpastas de categorias
@@ -156,7 +160,7 @@ def main():
     csv_summary_path = os.path.join(results_dir, f"experimento_sumarizado_{now_str}.csv")
 
     detail_fieldnames = [
-        "timestamp", "tipo_exec", "caso", "modo", "threads", "repeticao",
+        "timestamp", "tipo_exec", "caso", "modo", "processos", "threads", "repeticao",
         "score", "correto", "tempo_seq", "tempo_par", "tempo_total", "tempo_wall",
         "temp_start", "temp_end", "freq_start_mhz", "freq_end_mhz", "load_start", "mem_start_mb",
         "returncode"
@@ -207,6 +211,7 @@ def main():
                     "tipo_exec": "sequencial",
                     "caso": case_rel_path,
                     "modo": mode,
+                    "processos": 1,
                     "threads": 1,
                     "repeticao": rep,
                     "score": score,
@@ -258,6 +263,7 @@ def main():
                         "tipo_exec": "openmp",
                         "caso": case_rel_path,
                         "modo": mode,
+                        "processos": 1,
                         "threads": num_threads,
                         "repeticao": rep,
                         "score": score,
@@ -291,6 +297,8 @@ def main():
                 summary_records.append({
                     "caso": case_rel_path,
                     "modo": mode,
+                    "tipo_exec": "openmp",
+                    "processos": 1,
                     "threads": num_threads,
                     "score_ref": ref_score,
                     "divergencias": divergencias,
@@ -303,12 +311,170 @@ def main():
                     "eficiencia": eficiencia
                 })
 
-                print(f"    threads={num_threads:2d}: tempo_medio={avg_total:.4f}s (std={std_total:.4f}), speedup={speedup:.2f}, ef={eficiencia:.2f}")
+                print(f"    openmp threads={num_threads:2d}: tempo_medio={avg_total:.4f}s (std={std_total:.4f}), speedup={speedup:.2f}, ef={eficiencia:.2f}")
+
+            if mode == "--full-matrix" and shutil.which("mpirun"):
+                if os.path.exists(mpi_bin):
+                    for num_procs in mpi_processes_list:
+                        print(f"  executando mpi {num_procs} processos ({repetitions}x)...")
+                        par_scores = []
+                        par_times = []
+                        total_times = []
+                        divergencias = 0
+
+                        for rep in range(1, repetitions + 1):
+                            cmd = ["mpirun", "-np", str(num_procs), mpi_bin, file_a, file_b]
+                            score, t_seq, t_par, t_total, telem = run_single_execution(cmd, run_env)
+
+                            is_correct = 1 if (ref_score is not None and score == ref_score) else 0
+                            if not is_correct:
+                                divergencias += 1
+
+                            par_scores.append(score)
+                            if t_par is not None:
+                                par_times.append(t_par)
+                            if t_total is not None:
+                                total_times.append(t_total)
+                            else:
+                                total_times.append(telem["wall_time"])
+
+                            detail_writer.writerow({
+                                "timestamp": datetime.now().isoformat(),
+                                "tipo_exec": "mpi",
+                                "caso": case_rel_path,
+                                "modo": mode,
+                                "processos": num_procs,
+                                "threads": 1,
+                                "repeticao": rep,
+                                "score": score,
+                                "correto": is_correct,
+                                "tempo_seq": t_seq,
+                                "tempo_par": t_par,
+                                "tempo_total": t_total,
+                                "tempo_wall": telem["wall_time"],
+                                "temp_start": telem["temp_start"],
+                                "temp_end": telem["temp_end"],
+                                "freq_start_mhz": telem["freq_start"],
+                                "freq_end_mhz": telem["freq_end"],
+                                "load_start": telem["load_start"],
+                                "mem_start_mb": telem["mem_start_mb"],
+                                "returncode": telem["returncode"]
+                            })
+                            detail_file.flush()
+
+                        avg_par = sum(par_times) / len(par_times) if par_times else 0.0
+                        avg_total = sum(total_times) / len(total_times) if total_times else 0.0
+                        std_par = (sum((x - avg_par) ** 2 for x in par_times) / len(par_times)) ** 0.5 if len(par_times) > 1 else 0.0
+                        std_total = (sum((x - avg_total) ** 2 for x in total_times) / len(total_times)) ** 0.5 if len(total_times) > 1 else 0.0
+
+                        speedup = (avg_seq_time / avg_total) if avg_total > 0.0 else 0.0
+                        eficiencia = (speedup / num_procs) if num_procs > 0 else 0.0
+
+                        if divergencias > 0:
+                            print(f"    aviso: {divergencias} divergencias de score detectadas")
+
+                        summary_records.append({
+                            "caso": case_rel_path,
+                            "modo": mode,
+                            "tipo_exec": "mpi",
+                            "processos": num_procs,
+                            "threads": 1,
+                            "score_ref": ref_score,
+                            "divergencias": divergencias,
+                            "media_seq_total_s": avg_seq_time,
+                            "media_par_s": avg_par,
+                            "desvio_par_s": std_par,
+                            "media_total_s": avg_total,
+                            "desvio_total_s": std_total,
+                            "speedup": speedup,
+                            "eficiencia": eficiencia
+                        })
+
+                        print(f"    mpi procs={num_procs:2d}: tempo_medio={avg_total:.4f}s (std={std_total:.4f}), speedup={speedup:.2f}, ef={eficiencia:.2f}")
+
+                if os.path.exists(hybrid_bin):
+                    for num_procs, num_threads in hybrid_configs:
+                        print(f"  executando hibrido {num_procs} processos x {num_threads} threads ({repetitions}x)...")
+                        par_scores = []
+                        par_times = []
+                        total_times = []
+                        divergencias = 0
+
+                        for rep in range(1, repetitions + 1):
+                            cmd = ["mpirun", "-np", str(num_procs), hybrid_bin, file_a, file_b, str(num_threads)]
+                            score, t_seq, t_par, t_total, telem = run_single_execution(cmd, run_env)
+
+                            is_correct = 1 if (ref_score is not None and score == ref_score) else 0
+                            if not is_correct:
+                                divergencias += 1
+
+                            par_scores.append(score)
+                            if t_par is not None:
+                                par_times.append(t_par)
+                            if t_total is not None:
+                                total_times.append(t_total)
+                            else:
+                                total_times.append(telem["wall_time"])
+
+                            detail_writer.writerow({
+                                "timestamp": datetime.now().isoformat(),
+                                "tipo_exec": "hibrido",
+                                "caso": case_rel_path,
+                                "modo": mode,
+                                "processos": num_procs,
+                                "threads": num_threads,
+                                "repeticao": rep,
+                                "score": score,
+                                "correto": is_correct,
+                                "tempo_seq": t_seq,
+                                "tempo_par": t_par,
+                                "tempo_total": t_total,
+                                "tempo_wall": telem["wall_time"],
+                                "temp_start": telem["temp_start"],
+                                "temp_end": telem["temp_end"],
+                                "freq_start_mhz": telem["freq_start"],
+                                "freq_end_mhz": telem["freq_end"],
+                                "load_start": telem["load_start"],
+                                "mem_start_mb": telem["mem_start_mb"],
+                                "returncode": telem["returncode"]
+                            })
+                            detail_file.flush()
+
+                        avg_par = sum(par_times) / len(par_times) if par_times else 0.0
+                        avg_total = sum(total_times) / len(total_times) if total_times else 0.0
+                        std_par = (sum((x - avg_par) ** 2 for x in par_times) / len(par_times)) ** 0.5 if len(par_times) > 1 else 0.0
+                        std_total = (sum((x - avg_total) ** 2 for x in total_times) / len(total_times)) ** 0.5 if len(total_times) > 1 else 0.0
+
+                        total_workers = num_procs * num_threads
+                        speedup = (avg_seq_time / avg_total) if avg_total > 0.0 else 0.0
+                        eficiencia = (speedup / total_workers) if total_workers > 0 else 0.0
+
+                        if divergencias > 0:
+                            print(f"    aviso: {divergencias} divergencias de score detectadas")
+
+                        summary_records.append({
+                            "caso": case_rel_path,
+                            "modo": mode,
+                            "tipo_exec": "hibrido",
+                            "processos": num_procs,
+                            "threads": num_threads,
+                            "score_ref": ref_score,
+                            "divergencias": divergencias,
+                            "media_seq_total_s": avg_seq_time,
+                            "media_par_s": avg_par,
+                            "desvio_par_s": std_par,
+                            "media_total_s": avg_total,
+                            "desvio_total_s": std_total,
+                            "speedup": speedup,
+                            "eficiencia": eficiencia
+                        })
+
+                        print(f"    hibrido procs={num_procs:2d}, threads={num_threads:2d}: tempo_medio={avg_total:.4f}s (std={std_total:.4f}), speedup={speedup:.2f}, ef={eficiencia:.2f}")
 
     detail_file.close()
 
     summary_fieldnames = [
-        "caso", "modo", "threads", "score_ref", "divergencias",
+        "caso", "modo", "tipo_exec", "processos", "threads", "score_ref", "divergencias",
         "media_seq_total_s", "media_par_s", "desvio_par_s",
         "media_total_s", "desvio_total_s", "speedup", "eficiencia"
     ]
@@ -319,7 +485,7 @@ def main():
         for r in summary_records:
             swriter.writerow(r)
 
-    print(f"\experimento finalizado")
+    print("experimento finalizado")
     print(f"sumario em: {csv_summary_path}")
 
 if __name__ == "__main__":

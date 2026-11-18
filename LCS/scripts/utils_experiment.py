@@ -5,6 +5,7 @@ import time
 import subprocess
 import json
 import platform
+import shutil
 
 # funcoes de telemetria e metadados do hardware
 
@@ -122,7 +123,10 @@ def parse_lcs_output(output_str):
 
 def ensure_binaries(lcs_dir):
     print("compilando os binarios")
-    cmd = ["make", "-C", lcs_dir, "seq", "omp"]
+    targets = ["seq", "omp"]
+    if shutil.which("mpicc"):
+        targets.extend(["mpi", "hybrid"])
+    cmd = ["make", "-C", lcs_dir] + targets
     res = subprocess.run(cmd, capture_output=True, text=True)
     if res.returncode != 0:
         print("erro ao compilar:")

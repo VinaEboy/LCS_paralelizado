@@ -28,6 +28,16 @@ int main(int argc, char **argv) {
         }
         sizeA = strlen(seqA);
         sizeB = strlen(seqB);
+
+        if (sizeB < sizeA) {
+            char *tempSeq = seqA;
+            seqA = seqB;
+            seqB = tempSeq;
+            
+            int tempSize = sizeA;
+            sizeA = sizeB;
+            sizeB = tempSize;
+        }
     }
 
     // transmite os tamanhos das sequencias para todos os processos

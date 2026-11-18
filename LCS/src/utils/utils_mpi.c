@@ -80,7 +80,7 @@ void lcs_hybrid_process(mtype **localMatrix, char *seqA, char *seqB, int sizeA,
                      MPI_UNSIGNED_SHORT, rank - 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
 
-        lcs_omp_process_chunk(localMatrix, seqA, seqB, 1, num_minhas_linhas,
+        lcs_omp_process_chunk(localMatrix, seqA, seqB + (inicio_linha - 1), 1, num_minhas_linhas,
             col, fim_coluna, num_threads);
 
         // se nao for o ultimo processo, envia a sua ultima linha para o proximo processo

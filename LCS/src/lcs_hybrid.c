@@ -88,6 +88,7 @@ int main(int argc, char **argv) {
     if (rank == 0) {
         printf("Score: %d\n", final_score);
         printf("Processos: %d\n", size);
+        printf("Threads: %d\n", num_threads);
         printf("Tempo paralelo: %f s\n", (t_par_end - t_par_start));
         printf("Tempo total: %f s\n", (t_total_end - t_total_start));
     }
