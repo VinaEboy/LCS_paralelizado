@@ -81,7 +81,7 @@ int main(int argc, char ** argv) {
 
 		t_total_end = get_time();
 
-		printf("\nScore: %d\n", score);
+		printf("\nScore: %u\n", (unsigned int)score);
 		printf("Tempo sequencial: %f s\n", t_seq_total);
 		printf("Tempo total: %f s\n", (t_total_end - t_total_start));
 
@@ -109,7 +109,7 @@ int main(int argc, char ** argv) {
 		t_total_end = get_time();
 
 		//print score
-		printf("\nScore: %d\n", score);
+		printf("\nScore: %u\n", (unsigned int)score);
 		printf("Tempo sequencial: %f s\n", t_seq_total);
 		printf("Tempo total: %f s\n", (t_total_end - t_total_start));
 

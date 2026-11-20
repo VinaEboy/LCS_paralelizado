@@ -26,7 +26,7 @@ char* read_seq(char *fname) {
 
     while (!feof(fseq)) {
         seq[i] = fgetc(fseq);
-        if ((seq[i] != '\n') && (seq[i] != EOF))
+        if ((seq[i] != '\n') && (seq[i] != '\r') && (seq[i] != EOF))
             i++;
     }
     seq[i] = '\0';
@@ -88,7 +88,7 @@ void printMatrix(char *seqA, char *seqB, mtype **scoreMatrix, int sizeA, int siz
             printf("%c   ", seqB[i - 1]);
 
         for (int j = 0; j < sizeA + 1; j++) {
-            printf("%5d   ", scoreMatrix[i][j]);
+            printf("%5u   ", (unsigned)scoreMatrix[i][j]);
         }
         printf("\n");
     }

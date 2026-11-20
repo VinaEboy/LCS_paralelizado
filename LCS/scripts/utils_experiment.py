@@ -3,9 +3,15 @@ import sys
 import glob
 import time
 import subprocess
-import json
+import csv
 import platform
 import shutil
+
+# Adiciona o ambiente conda lcs-mpi ao PATH se existir e o mpicc nao estiver no PATH padrao
+conda_mpi_bin = os.path.expanduser("~/miniconda3/envs/lcs-mpi/bin")
+if os.path.exists(conda_mpi_bin) and not shutil.which("mpicc"):
+    os.environ["PATH"] = conda_mpi_bin + ":" + os.environ.get("PATH", "")
+os.environ.setdefault("OMPI_CC", "gcc")
 
 # funcoes de telemetria e metadados do hardware
 
@@ -49,6 +55,17 @@ def collect_system_metadata():
     }
 
     return meta
+
+def save_system_metadata_csv(filepath, meta):
+    with open(filepath, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["metrica", "valor"])
+        for k, v in meta.items():
+            if isinstance(v, dict):
+                for subk, subv in v.items():
+                    writer.writerow([f"{k}.{subk}", str(subv)])
+            else:
+                writer.writerow([k, str(v)])
 
 def get_cpu_temp():
     try:
@@ -95,12 +112,27 @@ def parse_lcs_output(output_str):
     t_seq = None
     t_par = None
     t_total = None
+    tipo = None
+    block_size = None
+    chunk_size = None
 
     for line in output_str.splitlines():
         line = line.strip()
         if line.startswith("Score:"):
             try:
                 score = int(line.split(":")[1].strip())
+            except ValueError:
+                pass
+        elif line.startswith("Tipo:"):
+            tipo = line.split(":")[1].strip()
+        elif line.startswith("Block size:"):
+            try:
+                block_size = int(line.split(":")[1].strip())
+            except ValueError:
+                pass
+        elif line.startswith("Chunk size:"):
+            try:
+                chunk_size = int(line.split(":")[1].strip())
             except ValueError:
                 pass
         elif line.startswith("Tempo sequencial:"):
@@ -119,15 +151,15 @@ def parse_lcs_output(output_str):
             except ValueError:
                 pass
 
-    return score, t_seq, t_par, t_total
+    return score, t_seq, t_par, t_total, tipo, block_size, chunk_size
 
-def ensure_binaries(lcs_dir):
-    print("compilando os binarios")
-    targets = ["seq", "omp"]
-    if shutil.which("mpicc"):
-        targets.extend(["mpi", "hybrid"])
-    cmd = ["make", "-C", lcs_dir] + targets
-    res = subprocess.run(cmd, capture_output=True, text=True)
+def ensure_binaries(lcs_dir, mtype_mode="u16"):
+    print(f"compilando os binarios ({mtype_mode})")
+    target = "u32" if mtype_mode == "u32" else "u16"
+    cmd = ["make", "-C", lcs_dir, target]
+    env = os.environ.copy()
+    env["OMPI_CC"] = "gcc"
+    res = subprocess.run(cmd, capture_output=True, text=True, env=env)
     if res.returncode != 0:
         print("erro ao compilar:")
         print(res.stderr)
@@ -152,7 +184,7 @@ def run_single_execution(cmd, env):
     freq_end = get_cpu_freq_mhz()
     elapsed_wall = end_wall - start_wall
 
-    score, t_seq, t_par, t_total = parse_lcs_output(res.stdout)
+    score, t_seq, t_par, t_total, tipo, block_size, chunk_size = parse_lcs_output(res.stdout)
 
     telemetry = {
         "wall_time": elapsed_wall,
@@ -163,7 +195,108 @@ def run_single_execution(cmd, env):
         "load_start": load_start,
         "mem_start_mb": mem_start,
         "returncode": res.returncode,
-        "stderr": res.stderr.strip()
+        "stderr": res.stderr.strip(),
+        "tipo": tipo,
+        "block_size": block_size,
+        "chunk_size": chunk_size
     }
 
     return score, t_seq, t_par, t_total, telemetry
+
+class ResultManager:
+    def __init__(self, root_dir, detail_fields, summary_fields):
+        self.root_dir = root_dir
+        self.detail_fields = detail_fields
+        self.summary_fields = summary_fields
+        self.family_files = {}
+
+        os.makedirs(root_dir, exist_ok=True)
+        self.global_detail_path = os.path.join(root_dir, "detalhado_geral.csv")
+        self.global_sum_path = os.path.join(root_dir, "sumarizado_geral.csv")
+        
+        self.global_detail_f = open(self.global_detail_path, "w", newline="")
+        self.global_detail_w = csv.DictWriter(self.global_detail_f, fieldnames=detail_fields)
+        self.global_detail_w.writeheader()
+        self.global_detail_f.flush()
+
+        self.global_sum_f = open(self.global_sum_path, "w", newline="")
+        self.global_sum_w = csv.DictWriter(self.global_sum_f, fieldnames=summary_fields)
+        self.global_sum_w.writeheader()
+        self.global_sum_f.flush()
+
+    def get_family_writers(self, family):
+        if family not in self.family_files:
+            fam_dir = os.path.join(self.root_dir, family)
+            os.makedirs(fam_dir, exist_ok=True)
+            
+            df = open(os.path.join(fam_dir, "detalhado.csv"), "w", newline="")
+            dw = csv.DictWriter(df, fieldnames=self.detail_fields)
+            dw.writeheader()
+            df.flush()
+
+            sf = open(os.path.join(fam_dir, "sumarizado.csv"), "w", newline="")
+            sw = csv.DictWriter(sf, fieldnames=self.summary_fields)
+            sw.writeheader()
+            sf.flush()
+
+            self.family_files[family] = {
+                'detail_f': df, 'detail_w': dw,
+                'sum_f': sf, 'sum_w': sw
+            }
+        return self.family_files[family]
+
+    def log_detail(self, family, record):
+        fw = self.get_family_writers(family)
+        fw['detail_w'].writerow(record)
+        fw['detail_f'].flush()
+        self.global_detail_w.writerow(record)
+        self.global_detail_f.flush()
+
+    def log_summary(self, family, record):
+        fw = self.get_family_writers(family)
+        fw['sum_w'].writerow(record)
+        fw['sum_f'].flush()
+        self.global_sum_w.writerow(record)
+        self.global_sum_f.flush()
+
+    def close(self):
+        for fdict in self.family_files.values():
+            fdict['detail_f'].close()
+            fdict['sum_f'].close()
+        self.global_detail_f.close()
+        self.global_sum_f.close()
+
+class BlockSizeManager:
+    def __init__(self, root_dir, bs_fields):
+        self.root_dir = root_dir
+        self.bs_fields = bs_fields
+        self.family_files = {}
+
+        os.makedirs(root_dir, exist_ok=True)
+        self.global_path = os.path.join(root_dir, "block_size_geral.csv")
+        self.global_f = open(self.global_path, "w", newline="")
+        self.global_w = csv.DictWriter(self.global_f, fieldnames=bs_fields)
+        self.global_w.writeheader()
+        self.global_f.flush()
+
+    def log_bs(self, family, record):
+        if family not in self.family_files:
+            fam_dir = os.path.join(self.root_dir, family)
+            os.makedirs(fam_dir, exist_ok=True)
+            bf = open(os.path.join(fam_dir, "block_size.csv"), "w", newline="")
+            bw = csv.DictWriter(bf, fieldnames=self.bs_fields)
+            bw.writeheader()
+            bf.flush()
+            self.family_files[family] = {'f': bf, 'w': bw}
+
+        fw = self.family_files[family]
+        fw['w'].writerow(record)
+        fw['f'].flush()
+        self.global_w.writerow(record)
+        self.global_f.flush()
+
+    def close(self):
+        for fdict in self.family_files.values():
+            fdict['f'].close()
+        self.global_f.close()
+

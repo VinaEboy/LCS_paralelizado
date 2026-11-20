@@ -34,6 +34,7 @@ int main(int argc, char **argv) {
     // leitura de flags opcionais
     int mem_opt = 0;
     int debug_matrix = 0;
+    int block_size = DEFAULT_BLOCK_SIZE;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "--mem-opt") == 0) {
             mem_opt = 1;
@@ -41,6 +42,10 @@ int main(int argc, char **argv) {
             debug_matrix = 1;
         } else if (strcmp(argv[i], "--full-matrix") == 0) {
             mem_opt = 0;
+        } else if (strcmp(argv[i], "--block-size") == 0 && i + 1 < argc) {
+            // tamanho de bloco customizado para particionamento
+            block_size = atoi(argv[i + 1]);
+            i++;
         }
     }
 
@@ -55,11 +60,12 @@ int main(int argc, char **argv) {
     mtype score = 0;
 
     if (mem_opt) {
+        // execucao paralela openmp com economia de memoria
         t_seq_end = get_time();
         t_seq_total += (t_seq_end - t_seq_start);
 
         t_par_start = get_time();
-        score = lcs_omp_process_mem_opt(seqA, seqB, sizeB, sizeA, num_threads);
+        score = lcs_omp_process_mem_opt(seqA, seqB, sizeB, sizeA, num_threads, block_size);
         t_par_end = get_time();
         t_par_total = (t_par_end - t_par_start);
 
@@ -72,13 +78,14 @@ int main(int argc, char **argv) {
     } 
     else 
     {
+        // execucao paralela openmp com matriz completa
         mtype **scoreMatrix = allocateScoreMatrix(sizeA, sizeB);
         initScoreMatrix(scoreMatrix, sizeA, sizeB);
         t_seq_end = get_time();
         t_seq_total += (t_seq_end - t_seq_start);
 
         t_par_start = get_time();
-        lcs_omp_process_region(scoreMatrix, seqA, seqB, 1, sizeB, sizeA, num_threads);
+        lcs_omp_process_region(scoreMatrix, seqA, seqB, 1, sizeB, sizeA, num_threads, block_size);
         t_par_end = get_time();
         t_par_total = (t_par_end - t_par_start);
 
@@ -98,8 +105,9 @@ int main(int argc, char **argv) {
 
     t_total_end = get_time();
 
-    printf("Score: %d\n", score);
+    printf("Score: %u\n", (unsigned int)score);
     printf("Threads: %d\n", num_threads);
+    printf("Block size: %d\n", block_size);
     printf("Tempo sequencial: %f s\n", t_seq_total);
     printf("Tempo paralelo: %f s\n", t_par_total);
     printf("Tempo total: %f s\n", (t_total_end - t_total_start));

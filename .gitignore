@@ -2,11 +2,14 @@
 Enunciado Trabalho1 OpenMP_MPI.pdf
 Relatório_Paralela/
 
+__pycache__/
 __pycaches__
 
 # Executaveis e binarios
 lcs_seq
 lcs_omp
+lcs_mpi
+lcs_hybrid
 *.o
 
 # Arquivos de saida / temporarios

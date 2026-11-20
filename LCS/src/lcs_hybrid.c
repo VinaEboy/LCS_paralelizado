@@ -17,9 +17,27 @@ int main(int argc, char **argv) {
 
     double t_total_start = get_time();
 
+    int mem_opt = 0;
+    int block_size = DEFAULT_BLOCK_SIZE;
+    int chunk_size = DEFAULT_CHUNK_SIZE;
+    // leitura de parametros de otimizacao, chunk e bloco
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "--mem-opt") == 0) {
+            mem_opt = 1;
+        } else if (strcmp(argv[i], "--full-matrix") == 0) {
+            mem_opt = 0;
+        } else if (strcmp(argv[i], "--block-size") == 0 && i + 1 < argc) {
+            block_size = atoi(argv[i + 1]);
+            i++;
+        } else if (strcmp(argv[i], "--chunk-size") == 0 && i + 1 < argc) {
+            chunk_size = atoi(argv[i + 1]);
+            i++;
+        }
+    }
+
     // processo 0 le os arquivos passados por argumento ou o default
     if (rank == 0) {
-        if (argc > 2) {
+        if (argc > 2 && argv[1][0] != '-' && argv[2][0] != '-') {
             seqA = read_seq(argv[1]);
             seqB = read_seq(argv[2]);
         } else {
@@ -44,6 +62,9 @@ int main(int argc, char **argv) {
     // transmite os tamanhos das sequencias para todos os processos
     MPI_Bcast(&sizeA, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&sizeB, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&mem_opt, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&block_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(&chunk_size, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // aloca espaco para as sequencias nos outros ranks
     if (rank != 0) {
@@ -59,42 +80,60 @@ int main(int argc, char **argv) {
     mtype *dados_locais = NULL;
     mtype **localMatrix = NULL;
 
-    mpi_initScoreMatrix(rank, size, sizeA, sizeB, &inicio_linha, &num_minhas_linhas, &localMatrix, &dados_locais);
+    int num_threads = (argc > 3 && argv[3][0] != '-') ? atoi(argv[3]) : NUM_THREADS;
 
-    int num_threads = (argc > 3) ? atoi(argv[3]) : NUM_THREADS;
+    // calculo da divisao balanceada de linhas entre ranks
+    int comp_linhas = sizeB / size;
+    int resto = sizeB % size;
+    inicio_linha = 1 + (rank * comp_linhas) + (rank < resto ? rank : resto);
+    int fim_linha = inicio_linha + comp_linhas + (rank < resto ? 1 : 0) - 1;
+    num_minhas_linhas = fim_linha - inicio_linha + 1;
+
+    mtype final_score = 0;
 
     MPI_Barrier(MPI_COMM_WORLD);
     double t_par_start = get_time();
 
-    lcs_hybrid_process(localMatrix, seqA, seqB, sizeA, inicio_linha, num_minhas_linhas, 
-        rank, size, num_threads);
+    if (mem_opt) {
+        // execucao hibrida mpi + openmp com economia de memoria
+        mtype my_score = lcs_hybrid_process_mem_opt(seqA, seqB, sizeA, inicio_linha, num_minhas_linhas,
+                                                    rank, size, num_threads, chunk_size, block_size);
+        if (rank == size - 1) final_score = my_score;
+    } else {
+        // execucao hibrida mpi + openmp com matriz completa
+        mpi_initScoreMatrix(rank, size, sizeA, sizeB, &inicio_linha, &num_minhas_linhas, &localMatrix, &dados_locais);
 
-    double t_par_end = get_time();
-    double t_total_end = get_time();
+        lcs_hybrid_process(localMatrix, seqA, seqB, sizeA, inicio_linha, num_minhas_linhas, 
+            rank, size, num_threads, chunk_size, block_size);
 
-    // o ultimo rank possui o resultado final
-    mtype final_score = 0;
-    if (rank == size - 1) final_score = localMatrix[num_minhas_linhas][sizeA];
+        // o ultimo rank possui o resultado final
+        if (rank == size - 1) final_score = localMatrix[num_minhas_linhas][sizeA];
+    }
 
     // envia o score final para o rank 0 para impressao padronizada
     if (size > 1) {
         if (rank == size - 1) {
-            MPI_Send(&final_score, 1, MPI_UNSIGNED_SHORT, 0, 99, MPI_COMM_WORLD);
+            MPI_Send(&final_score, 1, MPI_MTYPE, 0, 99, MPI_COMM_WORLD);
         } else if (rank == 0) {
-            MPI_Recv(&final_score, 1, MPI_UNSIGNED_SHORT, size - 1, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+            MPI_Recv(&final_score, 1, MPI_MTYPE, size - 1, 99, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         }
     }
 
+    double t_par_end = get_time();
+    double t_total_end = get_time();
+
     if (rank == 0) {
-        printf("Score: %d\n", final_score);
+        printf("Score: %u\n", (unsigned int)final_score);
         printf("Processos: %d\n", size);
         printf("Threads: %d\n", num_threads);
         printf("Tempo paralelo: %f s\n", (t_par_end - t_par_start));
         printf("Tempo total: %f s\n", (t_total_end - t_total_start));
     }
 
-    free(dados_locais);
-    free(localMatrix);
+    if (!mem_opt) {
+        free(dados_locais);
+        free(localMatrix);
+    }
     free(seqA);
     free(seqB);
 

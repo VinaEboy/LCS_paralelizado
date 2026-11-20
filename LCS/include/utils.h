@@ -4,12 +4,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "macros.h"
 
 #ifndef max
 #define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
 #endif
-
-typedef unsigned short mtype;
 
 char* read_seq(char *fname);
 mtype** allocateScoreMatrix(int sizeA, int sizeB);
