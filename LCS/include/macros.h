@@ -8,7 +8,7 @@
 typedef uint16_t mtype;
 #define MPI_MTYPE MPI_UNSIGNED_SHORT
 #else
-// tipo de 32 bits para pontuacoes maiores que 65535
+// tipo de 32 bits para pontuacoes maiores que 2^16 - 1
 typedef uint32_t mtype;
 #define MPI_MTYPE MPI_UNSIGNED
 #endif
@@ -25,7 +25,7 @@ typedef uint32_t mtype;
 #define DEFAULT_CHUNK_SIZE 1024
 #define CHUNK_SIZE DEFAULT_CHUNK_SIZE
 
-// caso não seja passado o num de threads por parametro
+// caso não seja passado o num de threads por argv
 #define NUM_THREADS 4
 
 // para imprimir a matriz ao executar
