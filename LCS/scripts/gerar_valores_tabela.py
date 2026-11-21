@@ -447,7 +447,7 @@ def main():
         if not check_file(CSV_EXP_DET, "detalhado geral de experimentos"):
             sys.exit(1)
 
-        print("\nCarregando sumarizado_geral.csv e detalhado_geral.csv ...")
+        print("\nCarregando sumarizado_geral.csv e detalhado_geral.csv")
         df_exp = pd.read_csv(CSV_EXP_SUM)
         df_det = pd.read_csv(CSV_EXP_DET)
 
@@ -461,7 +461,7 @@ def main():
         print("\n[INFO] EXPERIMENT = False: pulando Tabelas 4 a 11.")
 
     print("\n" + "="*80)
-    print("Processamento concluído com sucesso!")
+    print("Processamento concluído")
     print("="*80)
 
 if __name__ == '__main__':

@@ -466,7 +466,7 @@ def main():
     bs_mgr.close()
 
     print("\n" + "=" * 60)
-    print("TESTE COMPLETO FINALIZADO COM SUCESSO!")
+    print("Teste completo")
     print(f"Ambiente info:      {env_info_path}")
     print(f"Resumo geral:       {res_mgr.global_sum_path}")
     print(f"Detalhado geral:    {res_mgr.global_detail_path}")

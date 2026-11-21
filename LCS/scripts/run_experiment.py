@@ -487,7 +487,7 @@ def main():
     res_mgr.close()
 
     print("\n" + "=" * 60)
-    print("EXPERIMENTO FINALIZADO COM SUCESSO!")
+    print("Experimento Finalizado")
     print(f"Ambiente info:      {env_info_path}")
     print(f"Resumo geral:       {res_mgr.global_sum_path}")
     print(f"Detalhado geral:    {res_mgr.global_detail_path}")

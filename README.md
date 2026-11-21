@@ -2,7 +2,6 @@
 
 Trabalho prático da disciplina de **Programação Paralela (CI1316)**  
 Departamento de Informática (DINF) — Universidade Federal do Paraná (UFPR)  
-Professor: **Marco Antonio Zanata Alves**
 
 ---
 
@@ -21,8 +20,8 @@ O objetivo deste trabalho é implementar, analisar e otimizar o algoritmo da **M
    - **Otimizado em Memória (`--mem-opt`):** Utiliza apenas 2 linhas ativas, reduzindo a complexidade de espaço para $\mathcal{O}(N)$.
 
 2. **OpenMP (`lcs_omp`):**
-   - **Decomposição 2D em Blocos (*Tiling*):** A matriz é particionada em blocos de tamanho fixo (`--block-size N`, padrão `512`). Cada bloco é computado sequencialmente linha por linha internamente, garantindo máxima localidade espacial de cache L1d e reduzindo drásticamente *cache misses*.
-   - **Avanço em Frente de Onda (*Wavefront*):** O avanço diagonal é gerenciado dinamicamente via grafo de tarefas assíncronas do OpenMP com dependências de dados (`#pragma omp task depend(in: ...) depend(out: ...)`).
+   - **Decomposição 2D em Blocos:** A matriz é particionada em blocos de tamanho fixo (`--block-size N`, padrão `512`). Cada bloco é computado sequencialmente linha por linha internamente, garantindo máxima localidade espacial de cache L1d e reduzindo drásticamente *cache misses*.
+   - **Avanço diagonal:** O avanço diagonal é gerenciado dinamicamente via grafo de tarefas assíncronas do OpenMP com dependências de dados (`#pragma omp task depend(in: ...) depend(out: ...)`).
    - **Modo `--mem-opt`:** Armazena apenas as bordas ativas (superior e esquerda) de cada bloco, permitindo resolver matrizes gigantescas com espaço proporcional a $\mathcal{O}(N_{blocos})$.
 
 3. **MPI (`lcs_mpi`):**
