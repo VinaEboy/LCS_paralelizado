@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # script para carregar os csv dos resultados
-# e gerar os valores das tabelas do relatorio (Tabelas 3 a 11)
+# e gerar os valores das tabelas do relatorio (Tabelas 4 a 12)
 
 import os
 import sys
@@ -89,10 +89,10 @@ def processar_score_random(df_exp):
     print("\nConclusão empírica: Nos testes, o score obtido para o padrão 'random' converge consistentemente")
     print("para a razão de aproximadamente 0,8436 (~0,84 * min(N,M)), confirmando a fórmula adotada.")
 
-# TABELA 3 DO RELATORIO: BLOCK SIZE
-def processar_tabela_3():
+# TABELA 4 DO RELATORIO: BLOCK SIZE
+def processar_tabela_4():
     print("\n" + "="*80)
-    print("TABELA 3 (Relatório): Definição Experimental do BLOCK_SIZE")
+    print("TABELA 4 (Relatório): Definição Experimental do BLOCK_SIZE")
     print("="*80)
     
     if not check_file(CSV_TEST_BLOCK, "dados de varredura de BLOCK_SIZE"):
@@ -135,10 +135,10 @@ def processar_tabela_3():
     for r in latex_rows:
         print(r)
 
-# TABELA 4 DO RELATORIO: TEMPOS SEQUENCIAIS
-def processar_tabela_4(df_exp, df_det):
+# TABELA 5 DO RELATORIO: TEMPOS SEQUENCIAIS
+def processar_tabela_5(df_exp, df_det):
     print("\n" + "="*80)
-    print("TABELA 4 (Relatório): Tempos Sequenciais e Fração Não-Paralelizável (s e 1-s)")
+    print("TABELA 5 (Relatório): Tempos Sequenciais e Fração Não-Paralelizável (s e 1-s)")
     print("="*80)
 
     familias = [
@@ -218,10 +218,10 @@ def processar_tabela_4(df_exp, df_det):
     for r in latex_rows:
         print(r)
 
-# TABELA 5 DO RELATORIO: AMDAHL
-def processar_tabela_5(df_exp, df_det):
+# TABELA 6 DO RELATORIO: AMDAHL
+def processar_tabela_6(df_exp, df_det):
     print("\n" + "="*80)
-    print("TABELA 5 (Relatório): Estimativa Teórica pela Lei de Amdahl")
+    print("TABELA 6 (Relatório): Estimativa Teórica pela Lei de Amdahl")
     print("="*80)
     
     casos = [
@@ -372,10 +372,10 @@ def processar_speedup_e_eficiencia(df_exp, modo, num_tab_sp, num_tab_ef):
     for r in eficiencia_latex_compact:
         print(r)
 
-# TABELA 10 DO RELATORIO: IMPACTO DOS PADROES EM Q4
-def processar_tabela_10(df_exp):
+# TABELA 11 DO RELATORIO: IMPACTO DOS PADROES EM Q4
+def processar_tabela_11(df_exp):
     print("\n" + "="*80)
-    print("TABELA 10 (Relatório): Impacto dos Padrões de Entrada no Desempenho (Q4 de 40.000^2)")
+    print("TABELA 11 (Relatório): Impacto dos Padrões de Entrada no Desempenho (Q4 de 40.000^2)")
     print("="*80)
 
     padroes = ['p1', 'p2', 'p3', 'p4', 'random']
@@ -416,10 +416,10 @@ def processar_tabela_10(df_exp):
     for r in latex_rows:
         print(r)
 
-# TABELA 11 DO RELATORIO: IMPACTO GEOMETRICO (QUADRADOS VS RETANGULOS)
-def processar_tabela_11(df_exp):
+# TABELA 12 DO RELATORIO: IMPACTO GEOMETRICO (QUADRADOS VS RETANGULOS)
+def processar_tabela_12(df_exp):
     print("\n" + "="*80)
-    print("TABELA 11 (Relatório): Comparação Direta de Speedup (16 núcleos) entre Formatos")
+    print("TABELA 12 (Relatório): Comparação Direta de Speedup (16 núcleos) entre Formatos")
     print("="*80)
 
     casos_geom = [
@@ -470,9 +470,9 @@ def main():
     print(f"Diretório base detectado: {BASE_LCS}")
     
     if TEST:
-        processar_tabela_3()
+        processar_tabela_4()
     else:
-        print("\n[INFO] TEST = False: pulando Tabela 3 (sensibilidade de BLOCK_SIZE).")
+        print("\n[INFO] TEST = False: pulando Tabela 4 (sensibilidade de BLOCK_SIZE).")
 
     if EXPERIMENT:
         if not check_file(CSV_EXP_SUM, "sumarizado geral de experimentos"):
@@ -485,14 +485,14 @@ def main():
         df_det = pd.read_csv(CSV_EXP_DET)
 
         processar_score_random(df_exp)
-        processar_tabela_4(df_exp, df_det)
         processar_tabela_5(df_exp, df_det)
-        processar_speedup_e_eficiencia(df_exp, '--full-matrix', num_tab_sp=6, num_tab_ef=7)
-        processar_speedup_e_eficiencia(df_exp, '--mem-opt', num_tab_sp=8, num_tab_ef=9)
-        processar_tabela_10(df_exp)
+        processar_tabela_6(df_exp, df_det)
+        processar_speedup_e_eficiencia(df_exp, '--full-matrix', num_tab_sp=7, num_tab_ef=8)
+        processar_speedup_e_eficiencia(df_exp, '--mem-opt', num_tab_sp=9, num_tab_ef=10)
         processar_tabela_11(df_exp)
+        processar_tabela_12(df_exp)
     else:
-        print("\n[INFO] EXPERIMENT = False: pulando Tabelas 4 a 11.")
+        print("\n[INFO] EXPERIMENT = False: pulando Tabelas 5 a 12.")
 
     print("\n" + "="*80)
     print("Processamento concluído")

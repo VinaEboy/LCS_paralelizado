@@ -1,7 +1,7 @@
 Diretório base detectado: /home/gregorio/Area_de_trabalho/BCC/6periodo/Paralela/LCS_paralelizado/LCS
 
 ================================================================================
-TABELA 3 (Relatório): Definição Experimental do BLOCK_SIZE
+TABELA 4 (Relatório): Definição Experimental do BLOCK_SIZE
 ================================================================================
 Entrada        | Modo            | Th  | B=64   | B=128  | B=256  | B=512 
 -----------------------------------------------------------------
@@ -27,7 +27,23 @@ Q5/Q5_random & --mem-opt & 16 & 2{,}87 & 5{,}11 & 7{,}05 & \textbf{7{,}40} \\
 Carregando sumarizado_geral.csv e detalhado_geral.csv
 
 ================================================================================
-TABELA 4 (Relatório): Tempos Sequenciais e Fração Não-Paralelizável (s e 1-s)
+EXPERIMENTO PRELIMINAR: Validação do Score do Padrão Random (~0.84 min(N,M))
+================================================================================
+Caso            | Dimensões         | min(N,M)  | Score Medido | Razão (Score/min)  | Score Esperado (~0.84)
+------------------------------------------------------------------------------------------------------------
+Q1/Q1_random    | 1000 x 1000       | 1000      | 838          |            0.8380 | ~ 0.84 * min(N,M)
+Q2/Q2_random    | 10000 x 10000     | 10000     | 8432         |            0.8432 | ~ 0.84 * min(N,M)
+Q3/Q3_random    | 20000 x 20000     | 20000     | 16869        |            0.8435 | ~ 0.84 * min(N,M)
+Q4/Q4_random    | 40000 x 40000     | 40000     | 33744        |            0.8436 | ~ 0.84 * min(N,M)
+Q5/Q5_random    | 80000 x 80000     | 80000     | 67494        |            0.8437 | ~ 0.84 * min(N,M)
+Q6/Q6_random    | 100000 x 100000   | 100000    | 84369        |            0.8437 | ~ 0.84 * min(N,M)
+Q7/Q7_random    | 160000 x 160000   | 160000    | 134994       |            0.8437 | ~ 0.84 * min(N,M)
+
+Conclusão empírica: Nos testes, o score obtido para o padrão 'random' converge consistentemente
+para a razão de aproximadamente 0,8436 (~0,84 * min(N,M)), confirmando a fórmula adotada.
+
+================================================================================
+TABELA 5 (Relatório): Tempos Sequenciais e Fração Não-Paralelizável (s e 1-s)
 ================================================================================
 Caso            | Dimensões          | Tseq Full  | % Seq   | % Par   | Tseq Mem   | % Seq   | % Par  
 ------------------------------------------------------------------------------------------------------
@@ -79,7 +95,7 @@ R6           & $160k x 20k (8:1)$ & -- & -- & -- & 2{,}3358 & 0{,}07% & 99{,}93%
 R6_inv       & $20k x 160k (1:8)$ & -- & -- & -- & 2{,}0905 & 0{,}07% & 99{,}93% \\
 
 ================================================================================
-TABELA 5 (Relatório): Estimativa Teórica pela Lei de Amdahl
+TABELA 6 (Relatório): Estimativa Teórica pela Lei de Amdahl
 ================================================================================
 Caso / Modo            | Fração s   | p=2  | p=4  | p=8  | p=16 | p=32 | Limite (1/s)
 -------------------------------------------------------------------------------------
@@ -101,11 +117,11 @@ Q4 (--mem-opt) & 0{,}09\% & 2{,}00 & 3{,}99 & 7{,}95 & 15{,}79 & 31{,}14 & \text
 Q7 e Q8 (--mem-opt) & 0{,}01\% & 2{,}00 & 4{,}00 & 7{,}99 & 15{,}98 & 31{,}90 & \textbf{10000.0$\times$} \\
 
 ================================================================================
-TABELA 6 (Relatório): Speedup Médio no Modo --full-matrix
-TABELA 7 (Relatório): Eficiência Paralela correspondente no Modo --full-matrix
+TABELA 7 (Relatório): Speedup Médio no Modo --full-matrix
+TABELA 8 (Relatório): Eficiência Paralela correspondente no Modo --full-matrix
 ================================================================================
 
-[Tabela 6 - Speedup Médio Formato LaTeX (com negrito por versão)]:
+[Tabela 7 - Speedup Médio Formato LaTeX (com negrito por versão)]:
 enunciado                    & \textbf{0{,}71} & 0{,}23 & 0{,}12 & 0{,}07 & 0{,}04 & 0{,}00 & \textbf{0{,}36} & 0{,}18 & 0{,}15 & 0{,}08 & \textbf{0{,}12} & 0{,}07 & 0{,}06 & 0{,}04 & 0{,}03 & 0{,}03 \\
 número quebrado              & \textbf{1{,}04} & 1{,}03 & 0{,}91 & 0{,}85 & 0{,}64 & 1{,}18 & 1{,}16 & 1{,}05 & \textbf{1{,}62} & 1{,}21 & 0{,}74 & \textbf{0{,}82} & 0{,}65 & 0{,}69 & 0{,}64 & 0{,}79 \\
 Q1                           & 1{,}00 & \textbf{1{,}01} & 0{,}98 & 0{,}91 & 0{,}72 & 1{,}09 & 1{,}07 & 1{,}00 & 0{,}91 & \textbf{1{,}14} & 0{,}74 & \textbf{0{,}82} & 0{,}68 & 0{,}73 & 0{,}69 & 0{,}58 \\
@@ -121,7 +137,7 @@ R2_inv                       & 0{,}78 & 1{,}42 & 2{,}28 & 3{,}11 & \textbf{3{,}9
 R3                           & 0{,}80 & 1{,}57 & 2{,}60 & 3{,}80 & \textbf{4{,}84} & 0{,}85 & 1{,}39 & 2{,}01 & 2{,}48 & \textbf{2{,}77} & 1{,}71 & 1{,}80 & 2{,}29 & 1{,}79 & 2{,}48 & \textbf{2{,}68} \\
 R3_inv                       & 0{,}78 & 1{,}41 & 2{,}21 & 3{,}02 & \textbf{3{,}68} & 0{,}85 & 1{,}38 & 1{,}97 & 2{,}42 & \textbf{2{,}70} & 1{,}65 & 1{,}76 & 2{,}21 & 1{,}74 & 2{,}40 & \textbf{2{,}56} \\
 
-[Tabela 7 - Eficiência Média Formato LaTeX (Subconjunto usado no Relatório)]:
+[Tabela 8 - Eficiência Média Formato LaTeX (Subconjunto usado no Relatório)]:
 Q2         & \textbf{0{,}81} & 0{,}72 & 0{,}55 & 0{,}36 & 0{,}20 & \textbf{0{,}85} & 0{,}69 & 0{,}50 & 0{,}32 & 0{,}17 & \textbf{0{,}41} & 0{,}22 & 0{,}27 & 0{,}11 & 0{,}15 & 0{,}16 \\
 Q3         & \textbf{0{,}78} & 0{,}72 & 0{,}58 & 0{,}40 & 0{,}25 & \textbf{0{,}86} & 0{,}76 & 0{,}60 & 0{,}42 & 0{,}26 & \textbf{0{,}47} & 0{,}24 & 0{,}35 & 0{,}12 & 0{,}18 & 0{,}22 \\
 Q4         & \textbf{0{,}76} & 0{,}71 & 0{,}58 & 0{,}41 & 0{,}25 & \textbf{0{,}86} & 0{,}80 & 0{,}68 & 0{,}50 & 0{,}32 & \textbf{0{,}51} & 0{,}26 & 0{,}41 & 0{,}13 & 0{,}21 & 0{,}27 \\
@@ -130,11 +146,11 @@ Q6         & \textbf{0{,}72} & 0{,}66 & 0{,}51 & 0{,}32 & 0{,}17 & \textbf{0{,}8
 R1         & \textbf{0{,}74} & 0{,}70 & 0{,}59 & 0{,}43 & 0{,}27 & \textbf{0{,}85} & 0{,}80 & 0{,}69 & 0{,}51 & 0{,}33 & \textbf{0{,}53} & 0{,}27 & 0{,}44 & 0{,}14 & 0{,}22 & 0{,}29 \\
 
 ================================================================================
-TABELA 8 (Relatório): Speedup Médio no Modo --mem-opt
-TABELA 9 (Relatório): Eficiência Paralela correspondente no Modo --mem-opt
+TABELA 9 (Relatório): Speedup Médio no Modo --mem-opt
+TABELA 10 (Relatório): Eficiência Paralela correspondente no Modo --mem-opt
 ================================================================================
 
-[Tabela 8 - Speedup Médio Formato LaTeX (com negrito por versão)]:
+[Tabela 9 - Speedup Médio Formato LaTeX (com negrito por versão)]:
 enunciado                    & \textbf{0{,}47} & 0{,}17 & 0{,}09 & 0{,}05 & 0{,}02 & \textbf{0{,}89} & 0{,}32 & 0{,}18 & 0{,}14 & 0{,}07 & \textbf{0{,}11} & 0{,}06 & 0{,}05 & 0{,}04 & 0{,}03 & 0{,}03 \\
 número quebrado              & \textbf{0{,}69} & 0{,}56 & 0{,}49 & 0{,}40 & 0{,}30 & \textbf{1{,}32} & 1{,}24 & 1{,}10 & 0{,}93 & 0{,}74 & 0{,}36 & \textbf{0{,}37} & 0{,}31 & 0{,}31 & 0{,}30 & 0{,}36 \\
 Q1                           & \textbf{0{,}80} & 0{,}80 & 0{,}74 & 0{,}66 & 0{,}52 & \textbf{1{,}38} & 1{,}33 & 1{,}22 & 1{,}08 & 0{,}90 & \textbf{0{,}57} & 0{,}57 & 0{,}51 & 0{,}51 & 0{,}48 & 0{,}43 \\
@@ -158,7 +174,7 @@ R5\_inv ($40k \times 160k$)  & 0{,}59 & 1{,}17 & 2{,}28 & 4{,}12 & \textbf{7{,}7
 R6 ($160k \times 20k$)       & 0{,}59 & 1{,}17 & 2{,}29 & 4{,}14 & \textbf{7{,}65} & 1{,}34 & 2{,}52 & 4{,}50 & 6{,}91 & \textbf{9{,}84} & 1{,}46 & 1{,}50 & 1{,}80 & 1{,}49 & 1{,}82 & \textbf{1{,}96} \\
 R6\_inv ($20k \times 160k$)  & 0{,}53 & 1{,}05 & 2{,}05 & 3{,}72 & \textbf{6{,}85} & 1{,}20 & 2{,}25 & 4{,}03 & 6{,}26 & \textbf{8{,}78} & 1{,}31 & 1{,}34 & 1{,}61 & 1{,}33 & 1{,}63 & \textbf{1{,}75} \\
 
-[Tabela 9 - Eficiência Média Formato LaTeX (Subconjunto usado no Relatório)]:
+[Tabela 10 - Eficiência Média Formato LaTeX (Subconjunto usado no Relatório)]:
 Q2         & \textbf{0{,}96} & 0{,}94 & 0{,}87 & 0{,}70 & 0{,}36 & \textbf{1{,}18} & 1{,}06 & 0{,}83 & 0{,}57 & 0{,}34 & \textbf{0{,}51} & 0{,}25 & 0{,}36 & 0{,}12 & 0{,}18 & 0{,}21 \\
 Q3         & \textbf{0{,}96} & 0{,}96 & 0{,}92 & 0{,}82 & 0{,}65 & \textbf{1{,}17} & 1{,}12 & 0{,}98 & 0{,}76 & 0{,}50 & \textbf{0{,}57} & 0{,}28 & 0{,}46 & 0{,}14 & 0{,}23 & 0{,}32 \\
 Q4         & \textbf{0{,}96} & 0{,}96 & 0{,}93 & 0{,}85 & 0{,}77 & \textbf{1{,}17} & 1{,}14 & 1{,}06 & 0{,}91 & 0{,}70 & \textbf{0{,}60} & 0{,}30 & 0{,}51 & 0{,}15 & 0{,}25 & 0{,}35 \\
@@ -172,7 +188,7 @@ R4         & \textbf{0{,}59} & 0{,}59 & 0{,}57 & 0{,}52 & 0{,}49 & \textbf{1{,}3
 R4\_inv    & \textbf{0{,}59} & 0{,}59 & 0{,}57 & 0{,}52 & 0{,}49 & \textbf{1{,}34} & 1{,}31 & 1{,}24 & 1{,}07 & 0{,}91 & \textbf{0{,}43} & 0{,}22 & 0{,}28 & 0{,}11 & 0{,}14 & 0{,}15 \\
 
 ================================================================================
-TABELA 10 (Relatório): Impacto dos Padrões de Entrada no Desempenho (Q4 de 40.000^2)
+TABELA 11 (Relatório): Impacto dos Padrões de Entrada no Desempenho (Q4 de 40.000^2)
 ================================================================================
 Modo            | Padrão   | Score    | Tseq Médio   | Speedup OMP (16t)  | Speedup MPI (16p)
 --------------------------------------------------------------------------------
@@ -200,7 +216,7 @@ Modo            | Padrão   | Score    | Tseq Médio   | Speedup OMP (16t)  | Sp
 --mem-opt & \texttt{random} & 33744 & 1{,}069\,s & 11{,}35$\times$ & \textbf{12{,}29}$\times$ \\
 
 ================================================================================
-TABELA 11 (Relatório): Comparação Direta de Speedup (16 núcleos) entre Formatos
+TABELA 12 (Relatório): Comparação Direta de Speedup (16 núcleos) entre Formatos
 ================================================================================
 Caso       | Geometria / Razão         | Dimensões              | Área (MxN)      | OMP (16t)  | MPI (16p)
 ----------------------------------------------------------------------------------------------------------
