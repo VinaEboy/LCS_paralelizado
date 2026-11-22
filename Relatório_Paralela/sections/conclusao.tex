@@ -1,6 +1,0 @@
-\section{Conclusão}
-\label{sec:conclusao}
-
-Este trabalho avaliou o desempenho e a escalabilidade do algoritmo LCS na arquitetura da servidora \textit{duo}. A eliminação da matriz interna no modo \texttt{--mem-opt} transformou a carga de limitada por banda de memória em limitada por processamento, viabilizando matrizes gigantescas e elevando os \textit{speedups} para até $12{,}30\times$ no OpenMP e $16{,}61\times$ no MPI.
-
-O pipeline de \textit{chunks} no MPI propiciou ganhos super-lineares com poucos processos ao reter os dados ativos na cache L1d. Em contrapartida, a decomposição 2D do OpenMP garantiu alta estabilidade frente a matrizes retangulares desbalanceadas, enquanto a abordagem híbrida ressaltou a necessidade de dimensionar os \textit{chunks} para expor paralelismo interno suficiente às threads OpenMP.

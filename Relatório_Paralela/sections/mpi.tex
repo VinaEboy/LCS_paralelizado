@@ -1,6 +1,0 @@
-\subsection{Versão MPI: Decomposição 1D com Pipeline de Chunks}
-\label{sec:mpi}
-
-Na arquitetura de memória distribuída (MPI), as $M$ linhas da sequência B são particionadas horizontalmente em faixas contíguas balanceadas ($\lfloor M/P \rfloor$ linhas por processo). O processo de rank $0$ lê os arquivos e difunde os dados via \texttt{MPI\_Bcast}. 
-
-Para evitar a serialização que ocorreria caso cada processo calculasse toda a sua faixa antes de comunicar a borda inferior, o eixo das colunas é fatiado em \textbf{\textit{chunks}} de largura \texttt{CHUNK\_SIZE} ($1024$), estabelecendo um \textbf{\textit{pipeline} de mensagens} (Figura~\ref{fig:mpi_hibrido_pipeline}a). O processo \texttt{rank} recebe do vizinho superior (\texttt{rank - 1}) a borda do \textit{chunk} atual via \texttt{MPI\_Recv}, processa suas linhas, transmite a última linha calculada ao vizinho inferior via \texttt{MPI\_Send} e avança imediatamente para o próximo \textit{chunk}, permitindo concorrência em estágios defasados do pipeline.
