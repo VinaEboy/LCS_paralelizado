@@ -1,0 +1,19 @@
+\section{Kernel do Algoritmo Sequencial}
+\label{sec:sequencial}
+
+\begin{lstlisting}[caption={Kernel sequencial do algoritmo LCS em linguagem C.}, label={lst:kernel_seq}]
+int LCS(mtype **scoreMatrix, int sizeA, int sizeB, char *seqA, char *seqB) {
+    int i, j;
+    for (i = 1; i < sizeB + 1; i++) {
+        for (j = 1; j < sizeA + 1; j++) {
+            if (seqA[j - 1] == seqB[i - 1]) {
+                scoreMatrix[i][j] = scoreMatrix[i - 1][j - 1] + 1;
+            } else {
+                scoreMatrix[i][j] = max(scoreMatrix[i - 1][j], 
+                                        scoreMatrix[i][j - 1]);
+            }
+        }
+    }
+    return scoreMatrix[sizeB][sizeA];
+}
+\end{lstlisting}

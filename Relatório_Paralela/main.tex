@@ -1,0 +1,78 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{geometry}
+\geometry{a4paper, margin=1.5cm, top=1.5cm, bottom=1.5cm}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{microtype}
+
+% fonte similar a Verdana (sans-serif Helvetica)
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+
+% estilo dos trechos de codigo
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codegreen}{rgb}{0.1,0.5,0.1}
+\definecolor{codeblue}{rgb}{0.1,0.1,0.6}
+\definecolor{codebg}{rgb}{0.97,0.97,0.97}
+\lstset{
+    language=C,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{codeblue}\bfseries,
+    commentstyle=\color{codegreen},
+    numberstyle=\tiny\color{codegray},
+    backgroundcolor=\color{codebg},
+    numbers=left,
+    frame=single,
+    breaklines=true,
+    showstringspaces=false,
+    tabsize=4,
+    captionpos=b,
+    morekeywords={mtype, pragma, omp, task, depend, single, parallel, taskwait},
+    literate={á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+             {ã}{{\~a}}1 {õ}{{\~o}}1 {ç}{{\c{c}}}1 {ê}{{\^e}}1 {â}{{\^a}}1
+}
+\renewcommand{\lstlistingname}{Código}
+
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+% Ajuste fino de espacamento de titulos e floats para rigor de 8 paginas
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{6pt plus 1pt minus 1pt}{3pt plus 1pt minus 1pt}
+\titlespacing*{\subsection}{0pt}{4pt plus 1pt minus 1pt}{2pt plus 1pt minus 1pt}
+\setlength{\textfloatsep}{5pt plus 2pt minus 2pt}
+\setlength{\intextsep}{5pt plus 2pt minus 2pt}
+\setlength{\floatsep}{5pt plus 2pt minus 2pt}
+\setlength{\parskip}{2pt plus 1pt minus 1pt}
+\captionsetup{skip=3pt}
+
+\title{\vspace{-1.2cm}\textbf{Relatório Prático: Paralelização do Algoritmo LCS (OpenMP + MPI)}\vspace{-0.4cm}}
+\author{Gabriel Henrique Polo (GRR20241558) \and Vinícius Gregorio Fucci (GRR20241272)}
+\date{\vspace{-0.3cm}Novembro de 2026 -- CI1316: Programação Paralela (DINF/UFPR)\vspace{-0.6cm}}
+
+\begin{document}
+\maketitle
+
+\input{sections/introdução}
+\input{sections/openmp}
+\input{sections/mpi}
+\input{sections/hibrido}
+\input{sections/memoria}
+\input{sections/ambiente}
+\input{sections/entradas}
+\input{sections/resultados}
+\input{sections/discussao}
+\input{sections/conclusao}
+
+\end{document}
