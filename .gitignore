@@ -1,0 +1,13 @@
+# Enunciado e código-fonte LaTeX do relatório
+Enunciado Trabalho1 OpenMP_MPI.pdf
+Relatório_Paralela/
+
+# Binários compilados
+LCS/lcs_seq
+LCS/lcs_omp
+LCS/lcs_mpi
+LCS/lcs_hybrid
+
+# Logs e caches
+*.log
+__pycache__/
