@@ -1,0 +1,44 @@
+\section{Entradas e Granularidade de Blocos}
+\label{sec:entradas}
+
+Para validar a corretude das implementações paralelas e avaliar diferentes regimes de casamento de caracteres e desvios condicionais, as entradas foram geradas sinteticamente via \texttt{generate\_input.py} combinando 5 padrões conceituais (Tabela~\ref{tab:padroes}).
+
+\begin{table}[H]
+\centering
+\small
+\caption{Padrões de caracteres e o score analítico esperado.}
+\label{tab:padroes}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Padrão} & \textbf{Sequência A} & \textbf{Sequência B} & \textbf{Score Esperado} \\ \midrule
+\texttt{p1} & \texttt{"abcd"} repetido & \texttt{"bcda"} repetido & $\min(N,M) - 1$ \\
+\texttt{p2} & \texttt{"a"} repetido & \texttt{"b"} repetido & $0$ \\
+\texttt{p3} & \texttt{"abcd"} repetido & \texttt{"defg"} repetido & $\min(N,M)/4$ \\
+\texttt{p4} & \texttt{"triviall"} repetido & \texttt{"triviall"} repetido & $\min(N,M)$ \\
+\texttt{random} & Bytes pseudo-aleatórios & Bytes pseudo-aleatórios & $\approx 0{,}84 \min(N,M)$ (empírico) \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Famílias de Matrizes e Parâmetros dos Ladrilhos}
+
+A Tabela~\ref{tab:familias_entradas} sintetiza o conjunto de matrizes avaliadas, abrangendo diferentes volumes, proporções de aspecto e restrições de memória.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\caption{Famílias de entradas, dimensões, padrões de caracteres e modos avaliados.}
+\label{tab:familias_entradas}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{@{}llcc@{}}
+\toprule
+\textbf{Família / Casos} & \textbf{Dimensões ($M \times N$)} & \textbf{Padrões Avaliados} & \textbf{Modos Suportados} \\ \midrule
+enunciado / quebrado & $10 \times 7$ / $827 \times 827$ & fixo / \texttt{p1} & \texttt{--full-matrix}, \texttt{--mem-opt} \\
+Quadradas: Q1 a Q6 & $1.000^2$ até $100.000^2$ & \texttt{p1}, \texttt{p2}, \texttt{p3}, \texttt{p4}, \texttt{random} & \texttt{--full-matrix}, \texttt{--mem-opt} \\
+Quadradas: Q7 e Q8 & $160.000^2$ e $320.000^2$ & Q7: todos (5); Q8: \texttt{p1} & apenas \texttt{--mem-opt} (giga) \\
+Retangulares: R1 a R3 & $80k \times \{40, 20, 10\}k$ (e inv.) & todos (5) por variante & \texttt{--full-matrix}, \texttt{--mem-opt} \\
+Retangulares: R4 a R6 & $160k \times \{80, 40, 20\}k$ (e inv.) & \texttt{p1} (direto e inv.) & apenas \texttt{--mem-opt} (giga) \\ \bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Quanto à granularidade dos blocos, adotou-se \texttt{BLOCK\_SIZE} = \textbf{512} no OpenMP (definido empiricamente na Seção~\ref{sec:blocksize}) e \texttt{CHUNK\_SIZE} = \textbf{1024} no MPI (escolha de projeto para balancear latência e vazão no pipeline).
